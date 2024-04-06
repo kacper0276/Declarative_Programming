@@ -1,0 +1,33 @@
+Typ T1 | Typ T2 | Wartość | Unifikacja| Typ |
+---------------------------------------------
+policjant | policjant   | true    | Tak       | true|
+---------------------------------------------
+X      | Y      | true    | Tak       | true|
+---------------------------------------------
+kartka | papier | false   | Nie       | true|
+---------------------------------------------
+f(X,X) | f(a,b) | false   | Nie       | true|
+---------------------------------------------
+para(X,Y)| para(jacek,ewa)| true | tak | true|
+---------------------------------------------
+f(X,a(b,c))| f(Z,a(Z,c))| true | tak | true|
+---------------------------------------------
+125 | 125 | true | Tak | true|
+----------------------------------------------
+rzeczownik(alfa) | alfa | false | Nie | false
+----------------------------------------------
+punkt(A,b,c) | punkt(A,b,c) | true | Tak | true
+------------------------------------------------
+litera(C) | slowo(litera) | false | Nie | true
+------------------------------------------------
+slowo(C) | slowo(ania,ewa) | false | Nie | true
+-------------------------------------------------
+jedzie(student,rower) | jedzie(student,X) | true | Tak| true
+-------------------------------------------------------------
+'student' | student | true | Tak| true
+---------------------------------------
+fu(a,X,f(g(Y))) | fu(V,h(Z,V),f(V)) | false | Nie | true
+-------------------------------------------------------------
+fu(a,X,f(g(Y))) | fu(Y,f(Z),f(Z)) | true | Tak | true
+-------------------------------------------------------------
+fu(f(X),Y,a) | fu(f(g(Y)),c,Z) | true | Nie | true
