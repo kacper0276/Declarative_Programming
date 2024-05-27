@@ -1,0 +1,2 @@
+stan_magazynowy(10, 32).
+stan_magazynowy(50, 45345).

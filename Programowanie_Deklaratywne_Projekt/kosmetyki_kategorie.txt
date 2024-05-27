@@ -1,0 +1,2 @@
+kosmetyk_kategoria(10, 20).
+kosmetyk_kategoria(50, 24).

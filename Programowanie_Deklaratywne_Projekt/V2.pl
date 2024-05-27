@@ -1,0 +1,234 @@
+% Wczytywanie danych z pliku
+wczytaj_dane :-
+    open('kosmetyki.txt', read, Strkosmetyki),
+    open('kategorie.txt', read, StrKategorie),
+    open('kosmetyki_kategorie.txt', read, StrkosmetykiKategorie),
+    open('stan_magazynowy.txt', read, StrStanMagazynowy),
+    open('zamowienia.txt', read, StrZamowienia),
+    wczytaj_kosmetyki(Strkosmetyki),
+    wczytaj_kategorie(StrKategorie),
+    wczytaj_kosmetyki_kategorie(StrkosmetykiKategorie),
+    wczytaj_stan_magazynowy(StrStanMagazynowy),
+    wczytaj_zamowienia(StrZamowienia),
+    close(Strkosmetyki),
+    close(StrKategorie),
+    close(StrkosmetykiKategorie),
+    close(StrStanMagazynowy),
+    close(StrZamowienia).
+
+% Wczytuje kosmetyki z pliku
+% predykat kosmetyk/4
+wczytaj_kosmetyki(Stream) :-
+    read(Stream, Kosmetyk),
+    ( Kosmetyk \= end_of_file ->
+        assertz(Kosmetyk),
+        wczytaj_kosmetyki(Stream)
+    ; true ).
+
+% Wczytuje kategorie z pliku
+% predykat kategoria/2
+wczytaj_kategorie(Stream) :-
+    read(Stream, Kategoria),
+    ( Kategoria \= end_of_file ->
+        assertz(Kategoria),
+        wczytaj_kategorie(Stream)
+    ; true ).
+
+% Wczytuje kosmetyki_kategorie, mapowanie kosmetykow i kategorii
+% predykat kosmetyk_kategoria/2
+wczytaj_kosmetyki_kategorie(Stream) :-
+    read(Stream, KosmetykKategoria),
+    ( KosmetykKategoria \= end_of_file ->
+        assertz(KosmetykKategoria),
+        wczytaj_kosmetyki_kategorie(Stream)
+    ; true ).
+
+% Wczytuje stan magazynowy
+% predykat stan_magazynowy/2
+wczytaj_stan_magazynowy(Stream) :-
+    read(Stream, Stan),
+    ( Stan \= end_of_file ->
+        assertz(Stan),
+        wczytaj_stan_magazynowy(Stream)
+    ; true ).
+
+% Wczytuje zamowienia
+% predykat zamowienia/3
+wczytaj_zamowienia(Stream) :-
+    read(Stream, Zamowienie),
+    ( Zamowienie \= end_of_file ->
+        assertz(Zamowienie),
+        wczytaj_zamowienia(Stream)
+    ; true ).
+
+% Zapisywanie danych do pliku
+zapisz_kosmetyki :-
+    tell('kosmetyki.txt'),
+    zapis_kosmetykow,
+    told.
+
+zapisz_kategorie :-
+    tell('kategorie.txt'),
+    zapis_kategorii,
+    told.
+
+zapisz_kosmetyki_kategorie :-
+    tell('kosmetyki_kategorie.txt'),
+    zapis_kosmetykow_kategorie,
+    told.
+
+zapisz_stan_magazynowy :-
+    tell('stan_magazynowy.txt'),
+    zapis_stan_magazynowy,
+    told.
+
+zapisz_zamowienia :-
+    tell('zamowienia.txt'),
+    zapis_zamowien,
+    told.
+
+zapis_kosmetykow :-
+    forall(kosmetyk(ID, Nazwa, Opis, Cena),
+           format('kosmetyk(~w, \'~w\', \'~w\', ~w).~n', [ID, Nazwa, Opis, Cena])).
+
+zapis_kategorii :-
+    forall(kategoria(ID, Nazwa),
+           format('kategoria(~w, \'~w\').~n', [ID, Nazwa])).
+
+zapis_kosmetykow_kategorie :-
+    forall(kosmetyk_kategoria(KosmetykID, KategoriaID),
+           format('kosmetyk_kategoria(~w, ~w).~n', [KosmetykID, KategoriaID])).
+
+zapis_stan_magazynowy :-
+    forall(stan_magazynowy(KosmetykID, Ilosc),
+           format('stan_magazynowy(~w, ~w).~n', [KosmetykID, Ilosc])).
+
+zapis_zamowien :-
+    forall(zamowienie(NrZamowienia, KosmetykID, Ilosc),
+           format('zamowienie(~w, ~w, ~w).~n', [NrZamowienia, KosmetykID, Ilosc])).
+
+% Wyszukiwanie kosmetyku po nazwie
+znajdz_kosmetyk_po_nazwie(Nazwa, KosmetykID, Opis, Cena) :-
+    kosmetyk(KosmetykID, Nazwa, Opis, Cena).
+
+% Wyszukiwanie kosmetykow w danej kategorii
+kosmetyki_w_kategorii(KategoriaID, KosmetykID, Nazwa, Opis, Cena) :-
+    kosmetyk_kategoria(KosmetykID, KategoriaID),
+    kosmetyk(KosmetykID, Nazwa, Opis, Cena).
+
+% Sprawdzenie stanu magazynowego kosmetyku
+stan_kosmetyku(KosmetykID, Nazwa, Ilosc) :-
+    kosmetyk(KosmetykID, Nazwa, _, _),
+    stan_magazynowy(KosmetykID, Ilosc).
+
+% Aktualizacja stanu magazynowego kosmetyku
+aktualizuj_stan(KosmetykID, NowaIlosc) :-
+    retract(stan_magazynowy(KosmetykID, _)),
+    assert(stan_magazynowy(KosmetykID, NowaIlosc)),
+    zapisz_stan_magazynowy.
+
+% Dodanie nowego kosmetyku do magazynu
+dodaj_kosmetyk(KosmetykID, Nazwa, Opis, Cena, KategoriaID, Ilosc) :-
+    assert(kosmetyk(KosmetykID, Nazwa, Opis, Cena)),
+    assert(kosmetyk_kategoria(KosmetykID, KategoriaID)),
+    assert(stan_magazynowy(KosmetykID, Ilosc)),
+    zapisz_kosmetyki,
+    zapisz_kosmetyki_kategorie,
+    zapisz_stan_magazynowy.
+
+% Dodanie nowej kategorii
+dodaj_kategorie(KategoriaID, Nazwa) :-
+    assert(kategoria(KategoriaID, Nazwa)),
+    zapisz_kategorie.
+
+% Skladanie zamowienia
+zloz_zamowienie :-
+    writeln('Podaj numer zamowienia:'),
+    read(NrZamowienia),
+    writeln('Podaj ID kosmetyku:'),
+    read(KosmetykID),
+    writeln('Podaj ilosc kosmetyku:'),
+    read(Ilosc),
+    (stan_magazynowy(KosmetykID, DostepnaIlosc),
+     DostepnaIlosc >= Ilosc ->
+        NowaIlosc is DostepnaIlosc - Ilosc,
+        aktualizuj_stan(KosmetykID, NowaIlosc),
+        assertz(zamowienie(NrZamowienia, KosmetykID, Ilosc)),
+        zapisz_zamowienia,
+        writeln('Zamowienie zlozone i stan magazynowy zaktualizowany.');
+        writeln('Niewystarczajaca ilosc kosmetyku w magazynie.')).
+
+% Wyswietlanie listy kosmetykow
+wyswietl_kosmetyki :-
+    forall(kosmetyk(ID, Nazwa, Opis, Cena),
+           format('ID: ~w, Nazwa: ~w, Opis: ~w, Cena: ~w~n', [ID, Nazwa, Opis, Cena])).
+
+% Wyswietlanie menu glownego
+menu :-
+    repeat,
+    writeln('Wybierz akcje:'),
+    writeln('1. Wczytaj dane z pliku'),
+    writeln('2. Dodaj nowa kategorie'),
+    writeln('3. Dodaj nowy kosmetyk'),
+    writeln('4. Zaktualizuj stan magazynowy'),
+    writeln('5. Wyswietl kosmetyki w kategorii'),
+    writeln('6. Sprawdz stan magazynowy kosmetyku'),
+    writeln('7. Zloz zamowienie'),
+    writeln('8. Wyswietl liste kosmetykow'),
+    writeln('9. Wyjdz'),
+    read(Wybor), Wybor > 0, Wybor=<9,
+    wykonaj_akcje(Wybor),
+    (Wybor = 9), !.
+
+wykonaj_akcje(1) :-
+    wczytaj_dane,
+    writeln('Dane wczytane z pliku.').
+wykonaj_akcje(2) :-
+    writeln('Podaj ID kategorii:'),
+    read(KategoriaID),
+    writeln('Podaj nazwe kategorii:'),
+    read(Nazwa),
+    dodaj_kategorie(KategoriaID, Nazwa),
+    writeln('Kategoria dodana i zapisana do pliku.').
+wykonaj_akcje(3) :-
+    writeln('Podaj ID kosmetyku:'),
+    read(KosmetykID),
+    writeln('Podaj nazwe kosmetyku:'),
+    read(Nazwa),
+    writeln('Podaj opis kosmetyku:'),
+    read(Opis),
+    writeln('Podaj cene kosmetyku:'),
+    read(Cena),
+    writeln('Podaj ID kategorii:'),
+    read(KategoriaID),
+    writeln('Podaj ilosc kosmetyku:'),
+    read(Ilosc),
+    dodaj_kosmetyk(KosmetykID, Nazwa, Opis, Cena, KategoriaID, Ilosc),
+    writeln('Kosmetyk dodany i zapisany do pliku.').
+wykonaj_akcje(4) :-
+    writeln('Podaj ID kosmetyku:'),
+    read(KosmetykID),
+    writeln('Podaj nowa ilosc kosmetyku:'),
+    read(NowaIlosc),
+    aktualizuj_stan(KosmetykID, NowaIlosc),
+    writeln('Stan magazynowy zaktualizowany i zapisany do pliku.').
+wykonaj_akcje(5) :-
+    writeln('Podaj ID kategorii:'),
+    read(KategoriaID),
+    forall(kosmetyki_w_kategorii(KategoriaID, KosmetykID, Nazwa, Opis, Cena),
+           format('ID: ~w, Nazwa: ~w, Opis: ~w, Cena: ~w~n', [KosmetykID, Nazwa, Opis, Cena]);
+           writeln('Kategoria nie znaleziona.')).
+wykonaj_akcje(6) :-
+    writeln('Podaj ID kosmetyku:'),
+    read(KosmetykID),
+    (stan_kosmetyku(KosmetykID, Nazwa, Ilosc) ->
+        format('kosmetyk ID: ~w, Nazwa: ~w, Ilosc: ~w~n', [KosmetykID, Nazwa, Ilosc]);
+        writeln('kosmetyk nie znaleziony.')).
+wykonaj_akcje(7) :-
+    zloz_zamowienie.
+wykonaj_akcje(8) :-
+    wyswietl_kosmetyki.
+wykonaj_akcje(9) :-
+    writeln('Wykonal: Tomasz Milanowski i Kacper Renkel'),
+    writeln('Koniec programu.').
+
